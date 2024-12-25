@@ -6,7 +6,7 @@ from utils_two_agent import (sample_uniform_points, compute_heuristic, find_path
                    move_on_path, ik_for_agent_to_object, 
                    solve_ik_for_all_points, filter_solutions_for_agent_to_object, reachable, move_agent_away_from_object, distance_constraint)
 C = ry.Config()
-task = "p6-wall-tool.g"
+task = "p6-wall-two-agent.g"
 C.addFile(task)
 ry.params_add({
     "rrt/stepsize": 0.05,
