@@ -95,8 +95,6 @@ while len(L) > 0:
         node.config.view(True)
         node.config.view_close()
         move_on_path(node.config, path, found=True)
-        path_nodes = []
-        current_id = node.id
         break
     else:
         if node.type == "pick":
