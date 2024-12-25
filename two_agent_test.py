@@ -2,7 +2,7 @@ import robotic as ry
 import numpy as np
 
 
-from utils2 import (sample_uniform_points, compute_heuristic, find_path_between_configurations, 
+from utils_two_agent import (sample_uniform_points, compute_heuristic, find_path_between_configurations, 
                    move_on_path, ik_for_agent_to_object, 
                    solve_ik_for_all_points, filter_solutions_for_agent_to_object, reachable, move_agent_away_from_object, distance_constraint)
 C = ry.Config()
