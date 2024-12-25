@@ -21,11 +21,9 @@ ry.params_add({
     "rrt/verbose": 0
 })
 
-
 print(C.getFrameNames())
 C.view(True)
 C.view_close()
-
 
 class Node:
     def __init__(self, C, level, id, type, parentId = None):
@@ -38,21 +36,13 @@ class Node:
         if self.type == "place":
             self.config.attach(EGO_NAME, OBJ_NAME)
 
-
-
 def branch_from_place_node(node: Node, id):
-
     sampled_points = sample_uniform_points(node.config, num_samples= 300)
-
     level = node.level
-    
     scores = []
     for point in sampled_points:
         score = compute_heuristic(node.config, point, EGO_NAME, GOAL_NAME)
         scores.append((point, score))
-
-
-
     scores.sort(key=lambda x: x[1], reverse=True)
 
     path = []
@@ -69,11 +59,8 @@ def branch_from_place_node(node: Node, id):
         converged = move_on_path(node.config, path)
         node.config.frame(OBJ_NAME).unLink()
         newNode = Node(node.config, node.level + 1, id, "pick", node.id)
-
         return newNode
     return None
-
-
 
 allNodes = {}
 allConfigs = {}
@@ -110,28 +97,6 @@ while len(L) > 0:
         move_on_path(node.config, path, found=True)
         path_nodes = []
         current_id = node.id
-        
-        while current_id != -1:
-            current_node = allNodes[current_id]
-            path_nodes.append(current_node)
-            current_id = current_node.parentId
-        
-        # 2) Reverse the list so it goes from root to goal
-        path_nodes.reverse()
-        print("Path from root to goal (node IDs):", [nd.id for nd in path_nodes])
-        print("Path from root to goal (node levels):", [nd.level for nd in path_nodes])
-
-        for config_id, config in allConfigs.items():
-            print(config_id)
-            config.view(True)
-            config.view_close()
-            
-        print(allConfigs)
-
-
-        for node in path_nodes:
-            node.config.view(True)
-
         break
     else:
         if node.type == "pick":
