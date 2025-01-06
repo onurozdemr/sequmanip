@@ -156,11 +156,7 @@ while len(Q) > 0:
 
             config_temp = ry.Config()
             config_temp.addConfigurationCopy(node.config)
-
-            init_state = config_temp.getJointState()
-            agent_coords = config_temp.getFrame(EGO_NAME).getPosition()[:2]
             obj_coords = config_temp.getFrame(OBJ_NAME).getPosition()[:2]
-            goal_coords = config_temp.getFrame(GOAL_NAME).getPosition()[:2]
 
             tries = 18
             candidate_positions = []
@@ -175,7 +171,7 @@ while len(Q) > 0:
                 y = r * np.sin(theta)
                 cartesian_shift = np.array([x, y])
 
-                q_temp = obj_coords + cartesian_shift - agent_coords + init_state
+                q_temp = obj_coords + cartesian_shift
                 config_temp.setJointState(q_temp)
 
                 grasp_candidate = get_grasp_positions(config_temp)
