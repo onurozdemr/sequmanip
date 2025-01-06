@@ -174,7 +174,7 @@ def ik_for_agent_to_object(config, agent_name, obj_name): # return empty list if
 def get_grasp_positions(config):
     komo = ry.KOMO(config, phases=1, slicesPerPhase=1, kOrder=0, enableCollisions=True)
 
-    komo.addObjective([], ry.FS.accumulatedCollisions, [], ry.OT.eq, scale=[50])
+    komo.addObjective([], ry.FS.accumulatedCollisions, [], ry.OT.eq, scale=[100])
     komo.addObjective([], ry.FS.negDistance, [EGO_NAME, OBJ_NAME], ry.OT.eq, [10])
 
     ret = ry.NLP_Solver(komo.nlp(), verbose=0).solve()
