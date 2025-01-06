@@ -9,11 +9,6 @@ GOAL_NAME = "goal_visible"
 CAMERA_NAME = "camera_gl"
 TOOL_NAME = "tool"
 
-
-
-
-
-
 def move_agent_away_from_object(config : ry.Config, agent_name, object_name, margin):
 
     obj_frame = config.frame(object_name)
@@ -79,6 +74,13 @@ def get_object_size(config, obj_name):
     obj_radius = max(size[0], size[1]) / 2
     return obj_radius
 
+def polar_to_cartesian(polar):
+
+    r, theta = polar
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
+    return np.array([x, y])
+
 
 def compute_four_points_around_object(config, agent_name, obj_name):
     obj_pos = get_frame_position(config, obj_name)
@@ -134,8 +136,7 @@ def solve_ik_for_all_points(config, agent_name, obj_name):
             solutions.append(qSolution)
             # Optionally, visualize the configuration
             #config.setJointState(qSolution)
-            #config.view()
-            print(config.getCollisions())
+            #print(config.getCollisions())
            # input(f"Visualized Point {idx+1}. Press Enter to continue...")
         else:
             print(f"No feasible solution for Point {idx+1}")
@@ -169,6 +170,20 @@ def ik_for_agent_to_object(config, agent_name, obj_name): # return empty list if
     del temp_config
 
     return qSolution, ret.feasible
+
+def get_grasp_positions(config):
+    komo = ry.KOMO(config, phases=1, slicesPerPhase=1, kOrder=0, enableCollisions=True)
+
+    komo.addObjective([], ry.FS.accumulatedCollisions, [], ry.OT.eq, scale=[50])
+    komo.addObjective([], ry.FS.negDistance, [EGO_NAME, OBJ_NAME], ry.OT.eq, [10])
+
+    ret = ry.NLP_Solver(komo.nlp(), verbose=0).solve()
+
+    if ret:
+        path = komo.getPath()
+        return path
+    
+    return None
 
 
 def filter_solutions_for_agent_to_object(config, solutions): ## added config to the function arguments
@@ -229,14 +244,10 @@ def find_path_between_configurations(config, q_agent, q_goal):
     test_config.addConfigurationCopy(config)
     
     rrt = ry.PathFinder()
-    rrt.setProblem(test_config, [q_agent], [q_goal], collisionTolerance=0.01)
-
-
+    rrt.setProblem(test_config, [q_agent], [q_goal])
     solution = rrt.solve()
     path = solution.x
 
-
-    #print(path)
     del rrt
     return path
 
@@ -279,16 +290,17 @@ def move_on_path(config : ry.Config, path, found=False):
     for state in path:
         config.setJointState(state)
         count += 1
-        if config.getCollisionsTotalPenetration() > threshold and count > 10 and not found:
+        if config.getCollisionsTotalPenetration() > threshold and count > 10:
             print("************************** Collision threshold reached *****************************")
             break
         converged = check_for_convergence(config)
         if converged:
             print("**************************************SOLUTION FOUND************************************")
             break
-        config.view()
-        time.sleep(0.005)
-    config.view_close()
+        if found:
+            config.view()
+            time.sleep(0.001)
+    #config.view_close()
     return converged
 
 
@@ -438,31 +450,29 @@ def compute_heuristic(config, o_goal_pos, agent_name="ego", goal_visible="goal_v
     return score
 
 def reachable(config : ry.Config, obj_frame):
-
-
     temp_config = ry.Config()
     temp_config.addConfigurationCopy(config)
     rrt = ry.PathFinder()
-    
-    rrt.setProblem(temp_config, [temp_config.getJointState()], [obj_frame.getPosition()[:2]], collisionTolerance=0.01)
-    
-    tryCount = 20
-    count = 0
+    delta = np.array(config.frame(OBJ_NAME).getPosition()[:2]) - np.array(config.getJointState())
+    q_newgoal = np.array(obj_frame.getPosition()[:2]) - delta
+    rrt.setProblem(temp_config, [temp_config.getJointState()], q_newgoal, collisionTolerance=0.0001)
 
-    while count < tryCount:
+    tryCount = 20
+    threshold = 0.01
+    for _ in range(tryCount):
         ret = rrt.solve()
         if ret.feasible == 1:
+            path = ret.x
+            temp_config.setJointState(path[-1])
+            #if temp_config.getCollisionsTotalPenetration() > threshold:
+            #    print("Not reachable")
+            #    break  
             temp_config.clear()
-            del temp_config
-            del rrt
-            return True
-        count += 1
+            del rrt  
+            return True, path
 
-    
-    del rrt
     temp_config.clear()
-    del temp_config
-    return False
-
+    del rrt
+    return False, []
 
 
