@@ -2,3 +2,10 @@
 
 Goal of this work is to solve sequential manipulation problems using subproblem decomposition.
 It will be inspired by the paper: https://arxiv.org/pdf/2405.02053
+
+
+The finalized codes are in final_single_agent.py and bottleneck.py
+
+The environment (.g file) can be specified inside final_single_agent.py, to the config named "C", before the algorithm starts
+
+To run, write "python3 final_single_agent.py" to the terminal
